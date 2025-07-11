@@ -22,13 +22,13 @@ A Bash script to quickly find and navigate Git repositories using `fzf`.
 
 ```bash
 # Ubuntu/Debian
-sudo apt install jq fd-find fzf
+sudo apt install jq rust-fd-find fzf rust-eza
 
-# Fedora/CentOS
-sudo dnf install jq fd-find fzf
+# Fedora
+sudo dnf install jq rust-fd-find fzf rust-eza
 
 # Arch Linux
-sudo pacman -S jq fd fzf
+sudo pacman -S jq fd fzf eza
 ```
 
 ## 🚀 Installation
