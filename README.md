@@ -140,8 +140,8 @@ findgit_widget() {
   selected_dir=$("$HOME/.local/bin/findgit")
   if [[ -n "$selected_dir" ]]; then
     cd "$selected_dir"
-    zle reset-prompt
   fi
+  zle reset-prompt
 }
 
 # Register as zsh widget and bind to Ctrl+G
