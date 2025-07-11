@@ -57,7 +57,7 @@ _findgit() {
             fi
             echo -e "\n📁 Contenido:"
             if command -v eza &> /dev/null; then
-                eza --color=always -l {1} 2>/dev/null || ls -la {1}
+                eza --color=always -l --icons {1} 2>/dev/null || ls -la {1}
             else
                 ls -la {1}
             fi
