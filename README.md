@@ -1,7 +1,7 @@
 # 🔍 FindGit
 
 A Bash script to quickly find and navigate Git repositories using `fzf`.
-
+![Image](https://github.com/user-attachments/assets/76357451-14a1-4d60-a261-2d1869db8dfb)
 ## ✨ Features
 
 - 🔍 Search for Git repositories in user-defined directories  
