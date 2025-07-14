@@ -42,7 +42,8 @@ fi
 INSTALL_DIR="$HOME/.local/bin"
 mkdir -p "$INSTALL_DIR"
 
-ln -sf "$PWD/findgit.sh" "$INSTALL_DIR/findgit"
+cp "$PWD/findgit.sh" "$INSTALL_DIR/findgit"
+chmod +x "$INSTALL_DIR/findgit"
 echo -e "${GREEN}✅ Script instalado en: $INSTALL_DIR/findgit${NC}"
 
 # Verificar si ~/.local/bin está en PATH
