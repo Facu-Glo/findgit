@@ -42,7 +42,7 @@ fi
 INSTALL_DIR="$HOME/.local/bin"
 mkdir -p "$INSTALL_DIR"
 
-cp "$PWD/findgit" "$INSTALL_DIR/findgit"
+ln "$PWD/findgit" "$INSTALL_DIR/findgit"
 chmod +x "$INSTALL_DIR/findgit"
 echo -e "${GREEN}✅ Script instalado en: $INSTALL_DIR/findgit${NC}"
 
