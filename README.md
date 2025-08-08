@@ -52,22 +52,38 @@ cd findgit
 
 2. Make the script executable:
 ```bash
-chmod +x findgit.sh
+chmod +x findgit
 ```
 
 3. Create the configuration directory:
 ```bash
 mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/findgit"
+
 ```
 
 4. Create the configuration file:
 ```bash
-cp config.json "${XDG_CONFIG_HOME:-$HOME/.config}/findgit/config.json"
+cat > "${XDG_CONFIG_HOME:-$HOME/.config}/findgit/config.json" <<EOF
+{
+  "search_paths": [
+    "~/Paths/To/Your/Projects",
+    "~/HOME"
+  ],
+  "ignore_paths": [
+    "path/to/ignore",
+    "yay",
+    "node_modules",
+    ".venv",
+    "__pycache__",
+    ".git/objects"
+  ]
+}
+EOF
 ```
 
-5. (Optional) Create a symlink for global usage:
+5. Create a hardlink for global usage:
 ```bash
-ln -sf "$PWD/findgit.sh" /.local/bin/findgit
+ln "$PWD/findgit" /.local/bin/findgit
 ```
 
 ## ⚙️ Configuration
@@ -111,7 +127,7 @@ ${XDG_CONFIG_HOME:-$HOME/.config}/findgit/config.json
 findgit
 
 # If running directly
-./findgit.sh
+./findgit
 ```
 
 The script displays an interactive list of Git repositories where:
@@ -123,9 +139,8 @@ The script displays an interactive list of Git repositories where:
 
 ### FZF controls:
 - `↑/↓` o `Ctrl+j/k`: Navigate the list
-- `Enter`: Select and print path
+- `Enter`: Select 
 - `Esc` o `Ctrl+c`: Exit without selecting
-- `Tab`: Select multiple entries (if enabled)
 
 ## 🔧 Customization
 
