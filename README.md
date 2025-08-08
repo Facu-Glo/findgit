@@ -120,7 +120,7 @@ ${XDG_CONFIG_HOME:-$HOME/.config}/findgit/config.json
 - **`search_paths`**: Array of directories to search for Git repositories
 - **`ignore_paths`**: Array of directories to ignore during search
 
-## 🎯 Uso
+## 🎯 Use
 
 ```bash
 # If installed globally
