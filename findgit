@@ -25,25 +25,31 @@ _findgit() {
             
             # Verificar si tiene commits
             if ! git -C "$d" rev-parse --verify HEAD >/dev/null 2>&1; then
-                # Repo sin commits - verificar solo archivos untracked
+                # Repo sin commits - usar timestamp 0
+                git_timestamp="0"
                 if [[ -n $(git -C "$d" ls-files --others --exclude-standard 2>/dev/null) ]]; then
-                    echo -e "1\t$d\t\033[31m$d\033[0m"
+                    echo -e "1\t$git_timestamp\t$d\t\033[31m$d\033[0m"
                 else
-                    echo -e "2\t$d\t\033[37m$d\033[0m"
+                    echo -e "2\t$git_timestamp\t$d\t\033[37m$d\033[0m"
                 fi
             else
+                # Obtener timestamp del último commit
+                git_timestamp=$(git -C "$d" --no-pager log -1 --format="%ct" 2>/dev/null || echo "0")
+                
                 # Repo con commits - verificación completa
                 if git -C "$d" diff-index --quiet HEAD -- 2>/dev/null && \
                    git -C "$d" diff-files --quiet 2>/dev/null && \
                    [[ -z $(git -C "$d" ls-files --others --exclude-standard 2>/dev/null) ]]; then
-                    echo -e "2\t$d\t\033[37m$d\033[0m"
+                    echo -e "2\t$git_timestamp\t$d\t\033[37m$d\033[0m"
                 else
-                    echo -e "1\t$d\t\033[31m$d\033[0m"
+                    echo -e "1\t$git_timestamp\t$d\t\033[31m$d\033[0m"
                 fi
             fi
         ' _ {} | \
-        sort | \
-        cut -f2,3 | \
+        # Ordenar por timestamp y estado
+        sort -k1,1n -k2,2nr | \
+        # Formatear salida para fzf
+        cut -f3,4 | \
         fzf --ansi --with-nth=2 --preview "
             echo -e '\033[32m󰊢 Git Status:\033[0m'
             status_output=\$(git -C {1} -c color.status=always status --short 2>/dev/null)
