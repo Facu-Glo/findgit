@@ -16,7 +16,7 @@ _findgit() {
     local dir
     
     dir=$(
-        fd -t d -H --max-depth 5 '^\.git$' "${search_paths[@]}" "${ignore_paths[@]}" --exec dirname {} \; 2>/dev/null | \
+        fd -t d -H --max-depth 6 '^\.git$' "${search_paths[@]}" "${ignore_paths[@]}" --exec dirname {} \; 2>/dev/null | \
         sort -u | \
         xargs -I {} -P $(nproc) bash -c '
             d="$1"
