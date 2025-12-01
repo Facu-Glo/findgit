@@ -1,72 +1,121 @@
 #!/usr/bin/env bash
 CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/findgit/config.json"
-if ! search_paths=($(jq -r '.search_paths[]' "$CONFIG" 2>/dev/null)); then
-    echo "Error: No se pudieron leer las rutas de búsqueda del archivo de configuración" >&2
-    exit 1
+
+load_config() {
+    local config_file="$1"
+
+    if ! search_paths=($(jq -r '.search_paths[]' "$config_file" 2>/dev/null)); then
+        echo "Error: Could not read search paths from the configuration file" >&2
+        return 1
+    fi
+    if ! ignore_paths=($(jq -r '.ignore_paths[]' "$config_file" 2>/dev/null | sed 's/^/-E /')); then
+        ignore_paths=()
+    fi
+    if [[ ${#search_paths[@]} -eq 0 ]]; then
+        echo "Error: No search paths configured" >&2
+        return 1
+    fi
+    return 0
+}
+
+find_git_repos() {
+    local -n paths=$1
+    local -n ignores=$2
+    
+    fd -t d -H --max-depth 6 '^\.git$' "${paths[@]}" "${ignores[@]}" --exec dirname {} \; 2>/dev/null | sort -u
+}
+
+get_repo_status() {
+    local repo="$1"
+    local toplevel git_timestamp status_code color
+    
+    toplevel=$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null) || return 1
+    [[ "$toplevel" != "$repo" ]] && return 1
+    
+    if ! git -C "$repo" rev-parse --verify HEAD >/dev/null 2>&1; then
+        git_timestamp="0"
+        if has_untracked_files "$repo"; then
+            status_code="1"
+            color="\033[31m"  # Rojo
+        else
+            status_code="2"
+            color="\033[37m"  # Gris
+        fi
+    else
+        git_timestamp=$(git -C "$repo" --no-pager log -1 --format="%ct" 2>/dev/null || echo "0")
+        
+        if is_repo_clean "$repo"; then
+            status_code="2"
+            color="\033[37m"  # Gris
+        else
+            status_code="1"
+            color="\033[31m"  # Rojo
+        fi
+    fi
+    
+    echo -e "${status_code}\t${git_timestamp}\t${repo}\t${color}${repo}\033[0m"
+}
+
+has_untracked_files() {
+    local repo="$1"
+    [[ -n $(git -C "$repo" ls-files --others --exclude-standard 2>/dev/null) ]]
+}
+
+is_repo_clean() {
+    local repo="$1"
+    
+    git -C "$repo" diff-index --quiet HEAD -- 2>/dev/null && \
+    git -C "$repo" diff-files --quiet 2>/dev/null && \
+    ! has_untracked_files "$repo"
+}
+
+process_repos() {
+    xargs -I {} -P "$(nproc)" bash -c 'get_repo_status "$@"' _ {}
+}
+
+get_fzf_preview_command() {
+    cat <<'EOF'
+echo -e '\033[32m󰊢 Git Status:\033[0m'
+status_output=$(git -C {1} -c color.status=always status --short 2>/dev/null)
+if [[ -n "$status_output" ]]; then
+    echo "$status_output"
+else
+    echo 'No hay modificaciones'
 fi
-if ! ignore_paths=($(jq -r '.ignore_paths[]' "$CONFIG" 2>/dev/null | sed 's/^/-E /')); then
-    ignore_paths=()
+echo -e '\n Contenido:'
+if command -v eza &> /dev/null; then
+    eza --color=always -al --icons {1} 2>/dev/null || ls -la {1}
+else
+    ls -la {1}
 fi
-if [[ ${#search_paths[@]} -eq 0 ]]; then
-    echo "Error: No hay rutas de búsqueda configuradas" >&2
-    exit 1
-fi
+EOF
+}
+
+format_and_select() {
+    sort -k1,1n -k2,2nr | \
+    cut -f3,4 | \
+    fzf --ansi \
+        --with-nth=2 \
+        --preview "$(get_fzf_preview_command)" | \
+    cut -f1
+}
 
 _findgit() {
     local dir
     
+    load_config "$CONFIG" || return 1
+    
     dir=$(
-        fd -t d -H --max-depth 6 '^\.git$' "${search_paths[@]}" "${ignore_paths[@]}" --exec dirname {} \; 2>/dev/null | \
-        sort -u | \
-        xargs -I {} -P $(nproc) bash -c '
-            d="$1"
-            toplevel=$(git -C "$d" rev-parse --show-toplevel 2>/dev/null) || exit
-            [[ "$toplevel" != "$d" ]] && exit
-            
-            # Verificar si tiene commits
-            if ! git -C "$d" rev-parse --verify HEAD >/dev/null 2>&1; then
-                # Repo sin commits - usar timestamp 0
-                git_timestamp="0"
-                if [[ -n $(git -C "$d" ls-files --others --exclude-standard 2>/dev/null) ]]; then
-                    echo -e "1\t$git_timestamp\t$d\t\033[31m$d\033[0m"
-                else
-                    echo -e "2\t$git_timestamp\t$d\t\033[37m$d\033[0m"
-                fi
-            else
-                # Obtener timestamp del último commit
-                git_timestamp=$(git -C "$d" --no-pager log -1 --format="%ct" 2>/dev/null || echo "0")
-                
-                # Repo con commits - verificación completa
-                if git -C "$d" diff-index --quiet HEAD -- 2>/dev/null && \
-                   git -C "$d" diff-files --quiet 2>/dev/null && \
-                   [[ -z $(git -C "$d" ls-files --others --exclude-standard 2>/dev/null) ]]; then
-                    echo -e "2\t$git_timestamp\t$d\t\033[37m$d\033[0m"
-                else
-                    echo -e "1\t$git_timestamp\t$d\t\033[31m$d\033[0m"
-                fi
-            fi
-        ' _ {} | \
-        # Ordenar por timestamp y estado
-        sort -k1,1n -k2,2nr | \
-        # Formatear salida para fzf
-        cut -f3,4 | \
-        fzf --ansi --with-nth=2 --preview "
-            echo -e '\033[32m󰊢 Git Status:\033[0m'
-            status_output=\$(git -C {1} -c color.status=always status --short 2>/dev/null)
-            if [[ -n \"\$status_output\" ]]; then
-                echo \"\$status_output\"
-            else
-                echo 'No hay modificaciones'
-            fi
-            echo -e '\n📁 Contenido:'
-            if command -v eza &> /dev/null; then
-                eza --color=always -al --icons {1} 2>/dev/null || ls -la {1}
-            else
-                ls -la {1}
-            fi
-        " | cut -f1
+        find_git_repos search_paths ignore_paths | \
+        process_repos | \
+        format_and_select
     )
+    
     [[ -n $dir ]] && echo "$dir"
 }
+
+export -f get_repo_status
+export -f has_untracked_files
+export -f is_repo_clean
 
 _findgit
