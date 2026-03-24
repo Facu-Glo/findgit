@@ -76,7 +76,7 @@ process_repos() {
 get_fzf_preview_command() {
     cat <<'EOF'
 echo -e '\033[32m󰊢 Git Status:\033[0m'
-status_output=$(git -C {1} -c color.status=always status --short 2>/dev/null)
+status_output=$(git -C {2} -c color.status=always status --short 2>/dev/null)
 if [[ -n "$status_output" ]]; then
     echo "$status_output"
 else
@@ -84,9 +84,9 @@ else
 fi
 echo -e '\n Contenido:'
 if command -v eza &> /dev/null; then
-    eza --color=always -al --icons {1} 2>/dev/null || ls -la {1}
+    eza --color=always -al --icons {2} 2>/dev/null || ls -la {1}
 else
-    ls -la {1}
+    ls -la {2}
 fi
 EOF
 }
@@ -94,10 +94,11 @@ EOF
 format_and_select() {
     sort -k1,1n -k2,2nr | \
     cut -f3,4 | \
+    cat -n | \
     fzf --ansi \
-        --with-nth=2 \
+        --with-nth=1,3 \
         --preview "$(get_fzf_preview_command)" | \
-    cut -f1
+    awk '{print $2}'
 }
 
 _findgit() {
