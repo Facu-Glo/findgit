@@ -1,22 +1,32 @@
-# 🔍 FindGit
+#  FindGit
 
 A Bash script to quickly find and navigate Git repositories using `fzf`.
-![Image](https://github.com/user-attachments/assets/d388eb13-2208-465b-9d42-bbf536937341)
-## ✨ Features
 
-- 🔍 Search for Git repositories in user-defined directories  
-- 🎨 Interactive interface with `fzf` and colored output  
-- 📊 Preview showing Git status and directory content  
-- ⚡ Prioritizes repositories with uncommitted changes  
-- 🚫 Ignores specific directories to optimize search  
-- 🛠️ Flexible configuration via JSON  
+![Image](https://github.com/user-attachments/assets/2697bebf-fc34-46f4-8f01-36fb58366ecf)
 
-## 📋 Dependencies
+## Motivation
+As the number of projects on my computer grew, I started noticing two recurring problems:
 
-- `jq` – JSON parsing  
-- `fd` – Fast file search  
-- `fzf` – Interactive selector  
-- `eza` (optional) – Enhanced file listing  
+1. **Time loss:** Remembering and typing deep file system paths became tedious.
+2. **Lack of visibility:** I would forget which projects had pending changes or uncommitted work.
+
+**FindGit** was created to solve this by combining the speed of `fd` with the interactive interface of `fzf`, allowing me to visualize the state of my repositories and jump between them in milliseconds.
+
+##  Features
+
+-  Search for Git repositories in user-defined directories  
+-  Interactive interface with `fzf` and colored output  
+-  Preview showing Git status and directory content  
+-  Prioritizes repositories with uncommitted changes  
+-  Ignores specific directories to optimize search  
+-  Flexible configuration via JSON  
+
+##  Dependencies
+
+- [`jq`](https://github.com/jqlang/jq) – JSON parsing  
+- [`fd`](https://github.com/sharkdp/fd) – Fast file search  
+- [`fzf`](https://github.com/junegunn/fzf) – Interactive selector  
+- [`eza`](https://github.com/eza-community/eza) (optional) – Enhanced file listing
 
 ### Installing dependencies
 
@@ -31,7 +41,7 @@ sudo dnf install jq rust-fd-find fzf rust-eza
 sudo pacman -S jq fd fzf eza
 ```
 
-## 🚀 Installation
+##  Installation
 
 ### Automatic installation
 
@@ -86,7 +96,7 @@ EOF
 ln "$PWD/findgit" /.local/bin/findgit
 ```
 
-## ⚙️ Configuration
+##  Configuration
 
 The configuration file is located at:
 ```
@@ -120,7 +130,7 @@ ${XDG_CONFIG_HOME:-$HOME/.config}/findgit/config.json
 - **`search_paths`**: Array of directories to search for Git repositories
 - **`ignore_paths`**: Array of directories to ignore during search
 
-## 🎯 Use
+##  Use
 
 ```bash
 # If installed globally
@@ -142,7 +152,7 @@ The script displays an interactive list of Git repositories where:
 - `Enter`: Select 
 - `Esc` o `Ctrl+c`: Exit without selecting
 
-## 🔧 Customization
+##  Customization
 
 ### Shell integration
 
