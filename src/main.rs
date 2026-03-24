@@ -54,7 +54,10 @@ fn main() {
             "--with-nth",
             "2,3",
             "--preview",
-            "git -C {1} -c color.status=always status -s; echo; eza --color=always -al --icons {1}",
+            "echo -e '\x1b[1;36m󰊢 GIT STATUS\x1b[0m'; \
+             git -C {1} -c color.status=always status -s; \
+             echo -e '\n\x1b[1;34m CONTENTS\x1b[0m'; \
+             eza --color=always -al --icons {1}",
         ])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
