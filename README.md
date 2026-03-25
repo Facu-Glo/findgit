@@ -47,7 +47,7 @@ cd findgit
 The project includes a Makefile to handle everything.
 ```bash
 make help      # See all available commands
-make install   # Compiles in release mode and installs to ~/.local/bin/fgit-rs
+make install   # Compiles in release mode and installs to ~/.local/bin/findgit
 ```
 ### 3. Shell Integration (Zsh/Bash)
 To allow Findgit to change your shell directory, add this alias to your `.zshrc` or `.bashrc`:
@@ -55,7 +55,7 @@ To allow Findgit to change your shell directory, add this alias to your `.zshrc`
 # Primary Function
 fgit() {
     local selected_dir
-    selected_dir=$(fgit-rs)
+    selected_dir=$(findgit)
     if [[ -n "$selected_dir" ]]; then
         cd "$selected_dir"
     fi
@@ -64,7 +64,7 @@ fgit() {
 # Optional: Zsh Widget (Ctrl+G)
 fgit_widget() {
   local selected_dir
-  selected_dir=$(fgit-rs)
+  selected_dir=$(findgit)
   if [[ -n "$selected_dir" ]]; then
     cd "$selected_dir"
   fi
@@ -104,7 +104,7 @@ The config file is automatically created at:
 
 ##  Usage
 
-Simply type `fgit` (if using the alias) or `fgit-rs`.
+Simply type `fgit` (if using the alias) or `findgit`.
 
 - `↑/↓` or `Ctrl+j/k`: Navigate the list.
 - `Enter`: Change directory to the selected repo.

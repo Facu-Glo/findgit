@@ -4,6 +4,7 @@ RESET := \033[0m
 BOLD  := \033[1m
 
 BINARY_NAME=findgit_rs
+FINAL_NAME=findgit
 INSTALL_DIR=$(HOME)/.local/bin
 CONFIG_DIR=$(HOME)/.config/findgit
 SOURCE_FILES=$(shell find src -type f -name "*.rs")
@@ -19,10 +20,10 @@ target/release/$(BINARY_NAME): $(SOURCE_FILES)
 	@cargo build --release
 
 install: build 
-	@echo "Installing binary to $(INSTALL_DIR)..."
+	@echo "Installing binary to $(INSTALL_DIR)/$(FINAL_NAME)..."
 	@mkdir -p $(INSTALL_DIR)
-	@cp target/release/$(BINARY_NAME) $(INSTALL_DIR)/fgit-rs
-	@chmod +x $(INSTALL_DIR)/fgit-rs
+	@cp target/release/$(BINARY_NAME) $(INSTALL_DIR)/$(FINAL_NAME)
+	@chmod +x $(INSTALL_DIR)/$(FINAL_NAME)
 	@echo "Checking configuration..."
 	@mkdir -p $(CONFIG_DIR)
 	@if [ ! -f $(CONFIG_DIR)/config.json ]; then \
@@ -33,7 +34,7 @@ install: build
 
 quick-install: 
 	@if [ -f target/release/$(BINARY_NAME) ]; then \
-		cp target/release/$(BINARY_NAME) $(INSTALL_DIR)/fgit-rs; \
+		cp target/release/$(BINARY_NAME) $(INSTALL_DIR)/$(FINAL_NAME); \
 		echo "Existing binary installed."; \
 	else \
 		echo "Error: No compiled binary found. Run 'make install'."; \
@@ -41,7 +42,7 @@ quick-install:
 
 uninstall:
 	@echo "Removing binary and configuration..."
-	@rm -f $(INSTALL_DIR)/fgit-rs
+	@rm -f $(INSTALL_DIR)/$(FINAL_NAME)
 	@rm -rf $(CONFIG_DIR)
 	@echo "findgit has been uninstalled."
 
@@ -65,4 +66,4 @@ help:
 	@echo -e "  $(GREEN)help$(RESET)           Show this help menu"
 	@echo -e ""
 	@echo -e "Remember to add the alias to your $(BOLD).zshrc$(RESET):"
-	@echo -e "  $(CYAN)alias fgit='cd \$$(fgit-rs)'$(RESET)"
+	@echo -e "  $(CYAN)alias fgit='cd \$$(findgit)'$(RESET)"
