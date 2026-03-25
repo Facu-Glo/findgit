@@ -110,6 +110,8 @@ Simply type `fgit` (if using the alias) or `findgit`.
 - `Enter`: Change directory to the selected repo.
 - `Esc` or `Ctrl+c`: Exit.
 
+https://github.com/user-attachments/assets/b8dd5575-aefe-4754-aba0-024f0419589c
+
 The interface highlights:
 
 - Red: Repositories with uncommitted changes.
