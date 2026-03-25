@@ -3,6 +3,7 @@ mod fzf;
 mod git;
 mod models;
 mod repo;
+mod runtime;
 
 use fzf::*;
 use repo::*;
@@ -10,12 +11,7 @@ use repo::*;
 const DEFAULT_CONFIG_PATH: &str = "~/.config/findgit/config.json";
 
 fn main() {
-    rayon::ThreadPoolBuilder::new()
-        .num_threads(num_cpus::get() / 2)
-        .build_global()
-        .ok();
-
-    colored::control::set_override(true);
+    runtime::init();
 
     let app_config = config::load_config(DEFAULT_CONFIG_PATH);
 
