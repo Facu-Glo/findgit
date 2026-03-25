@@ -54,10 +54,20 @@ fn main() {
             "--with-nth",
             "2,3",
             "--preview",
-            "echo -e '\x1b[1;36m󰊢 GIT STATUS\x1b[0m'; \
-             git -C {1} -c color.status=always status -s; \
+            "git_out=$(git -C {1} -c color.status=always status -s); \
+             echo -e '\x1b[1;36m󰊢 GIT STATUS\x1b[0m'; \
+             if [ -z \"$git_out\" ]; then \
+                echo -e '\x1b[3;90mNo pending changes\x1b[0m'; \
+             else \
+                echo \"$git_out\"; \
+             fi; \
              echo -e '\n\x1b[1;34m CONTENTS\x1b[0m'; \
-             eza --color=always -al --icons {1}",
+             contents=$(eza --color=always -al --icons {1} 2>/dev/null); \
+             if [ -z \"$contents\" ]; then \
+                echo -e '\x1b[3;90mDirectory is empty\x1b[0m'; \
+             else \
+                echo \"$contents\"; \
+             fi",
         ])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -66,11 +76,11 @@ fn main() {
 
     if let Some(mut stdin) = child.stdin.take() {
         for (i, r) in repos.iter().enumerate() {
-            let index = (i + 1).to_string().white();
+            let index = (i + 1).to_string().truecolor(128, 128, 128);
             let colored_path = if r.status_code == 1 {
                 r.path.red()
             } else {
-                r.path.truecolor(128, 128, 128)
+                r.path.white()
             };
 
             if let Err(e) = writeln!(stdin, "{}\t{}\t{}", r.path, index, colored_path) {
