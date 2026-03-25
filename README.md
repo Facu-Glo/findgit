@@ -14,113 +14,85 @@ As the number of projects on my computer grew, I started noticing two recurring 
 
 ##  Features
 
--  Search for Git repositories in user-defined directories  
--  Interactive interface with `fzf` and colored output  
--  Preview showing Git status and directory content  
--  Prioritizes repositories with uncommitted changes  
--  Ignores specific directories to optimize search  
--  Flexible configuration via JSON  
+-  Blazing Fast Search: Scans multiple directories in parallel.
+-  Smart Sorting: Prioritizes repositories with pending changes, then by last commit date.
+-  Interactive Interface: Powered by fzf with a rich, colored preview.
+-  Highly Configurable: Simple JSON configuration for search and ignore paths.
 
 ##  Dependencies
 
-- [`jq`](https://github.com/jqlang/jq) – JSON parsing  
-- [`fd`](https://github.com/sharkdp/fd) – Fast file search  
+### Required
 - [`fzf`](https://github.com/junegunn/fzf) – Interactive selector  
-- [`eza`](https://github.com/eza-community/eza) (optional) – Enhanced file listing
+- [`fd`](https://github.com/sharkdp/fd) – Fast file search  
+- **Rust Toolchain** (to build from source).
+
+### Recommended (for Previews)
+- [`eza`](https://github.com/eza-community/eza) Modern `ls` replacement for directory icons and colors.
 
 ### Installing dependencies
 
 ```bash
-# Ubuntu/Debian
-sudo apt install jq rust-fd-find fzf rust-eza
-
-# Fedora
-sudo dnf install jq rust-fd-find fzf rust-eza
-
 # Arch Linux
-sudo pacman -S jq fd fzf eza
+sudo pacman -S fd fzf eza rustup
 ```
 
 ##  Installation
 
-### Automatic installation
-
-```bash
-git clone https://github.com/Facu-Glo/findgit.git
-cd findgit
-chmod +x install.sh
-./install.sh
-```
-
-### Manual installation
-
-1. Clone the repository:
+### 1. Clone the repository
 ```bash
 git clone https://github.com/Facu-Glo/findgit.git
 cd findgit
 ```
-
-2. Make the script executable:
+### 2. Build and Install using Makefile
+The project includes a Makefile to handle everything.
 ```bash
-chmod +x findgit
+make help      # See all available commands
+make install   # Compiles in release mode and installs to ~/.local/bin/findgit
 ```
-
-3. Create the configuration directory:
+### 3. Shell Integration (Zsh/Bash)
+To allow Findgit to change your shell directory, add this alias to your `.zshrc` or `.bashrc`:
 ```bash
-mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/findgit"
-
-```
-
-4. Create the configuration file:
-```bash
-cat > "${XDG_CONFIG_HOME:-$HOME/.config}/findgit/config.json" <<EOF
-{
-  "search_paths": [
-    "~/Paths/To/Your/Projects",
-    "~/HOME"
-  ],
-  "ignore_paths": [
-    "path/to/ignore",
-    "yay",
-    "node_modules",
-    ".venv",
-    "__pycache__",
-    ".git/objects"
-  ]
+# Primary Function
+fgit() {
+    local selected_dir
+    selected_dir=$(findgit)
+    if [[ -n "$selected_dir" ]]; then
+        cd "$selected_dir"
+    fi
 }
-EOF
-```
 
-5. Create a hardlink for global usage:
-```bash
-ln "$PWD/findgit" /.local/bin/findgit
+# Optional: Zsh Widget (Ctrl+G)
+fgit_widget() {
+  local selected_dir
+  selected_dir=$(findgit)
+  if [[ -n "$selected_dir" ]]; then
+    cd "$selected_dir"
+  fi
+  zle reset-prompt
+}
+zle -N fgit_widget
+bindkey '^G' fgit_widget
 ```
 
 ##  Configuration
 
-The configuration file is located at:
+The config file is automatically created at:
 ```
-${XDG_CONFIG_HOME:-$HOME/.config}/findgit/config.json
+~/.config/findgit/config.json
 ```
 
 ### Example config:
 ```json
 {
   "search_paths": [
-    "~/Proyectos",
-    "~/dev",
-    "~/workspace",
-    "~/Documents/code"
+    "~/Repos",
+    "~/Documents/Projects"
   ],
   "ignore_paths": [
     "node_modules",
     ".venv",
-    "__pycache__",
-    ".git/objects",
-    "vendor",
     "target",
-    "build",
-    "dist"
+    "build"
   ]
 }
 ```
@@ -130,48 +102,17 @@ ${XDG_CONFIG_HOME:-$HOME/.config}/findgit/config.json
 - **`search_paths`**: Array of directories to search for Git repositories
 - **`ignore_paths`**: Array of directories to ignore during search
 
-##  Use
+##  Usage
 
-```bash
-# If installed globally
-findgit
+Simply type `fgit` (if using the alias) or `findgit`.
 
-# If running directly
-./findgit
-```
+- `↑/↓` or `Ctrl+j/k`: Navigate the list.
+- `Enter`: Change directory to the selected repo.
+- `Esc` or `Ctrl+c`: Exit.
 
-The script displays an interactive list of Git repositories where:
+The interface highlights:
 
-- Repos with uncommitted changes appear in red and are shown first
-- Clean repos appear in **gray**
-- The preview shows Git status and directory contents
-
-
-### FZF controls:
-- `↑/↓` o `Ctrl+j/k`: Navigate the list
-- `Enter`: Select 
-- `Esc` o `Ctrl+c`: Exit without selecting
-
-##  Customization
-
-### Shell integration
-
-You can create a function in your `.bashrc` or `.zshrc` to navigate directly:
-
-```bash
-# Function to integrate findgit with zsh
-findgit_widget() {
-  local selected_dir
-  selected_dir=$("$HOME/.local/bin/findgit")
-  if [[ -n "$selected_dir" ]]; then
-    cd "$selected_dir"
-  fi
-  zle reset-prompt
-}
-
-# Register as zsh widget and bind to Ctrl+G
-zle -N findgit_widget
-bindkey '^G' findgit_widget
-```
-
-
+- Red: Repositories with uncommitted changes.
+- Gray: Clean repositories.
+- Preview Top: git status summary.
+- Preview Bottom: File listing with icons.
