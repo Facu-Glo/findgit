@@ -6,30 +6,44 @@ use std::process::{Command, Stdio};
 pub fn build_fzf_command() -> Command {
     let mut cmd = Command::new("fzf");
 
-    cmd.args([
-        "--ansi",
-        "--delimiter",
-        "\t",
-        "--with-nth",
-        "2,3",
-        "--preview",
-        "git_out=$(git -C {1} -c color.status=always status -s); \
-         echo -e '\x1b[1;36m󰊢 GIT STATUS\x1b[0m'; \
-         if [ -z \"$git_out\" ]; then \
-            echo -e '\x1b[3;90mNo pending changes\x1b[0m'; \
-         else \
-            echo \"$git_out\"; \
-         fi; \
-         echo -e '\n\x1b[1;34m CONTENTS\x1b[0m'; \
-         contents=$(eza --color=always -al --icons {1} 2>/dev/null); \
-         if [ -z \"$contents\" ]; then \
-            echo -e '\x1b[3;90mDirectory is empty\x1b[0m'; \
-         else \
-            echo \"$contents\"; \
-         fi",
-    ])
-    .stdin(Stdio::piped())
-    .stdout(Stdio::piped());
+    cmd.arg("--ansi")
+        .arg("--delimiter")
+        .arg("\t")
+        .arg("--with-nth")
+        .arg("2")
+        .arg("--style=full")
+        .arg("--layout=reverse")
+        .arg("--height=50%")
+        .arg("--tiebreak=length");
+
+    let git_cmds = [
+        r#"git_out=$(git -C {1} -c color.status=always status -s 2>/dev/null)"#,
+        r#"echo -e '\x1b[1;36m󰊢 GIT STATUS\x1b[0m'"#,
+        r#"if [ -z "$git_out" ]; then 
+            echo -e '\x1b[3;90mNo pending changes\x1b[0m'; 
+        else 
+            echo "$git_out";
+        fi"#,
+    ];
+
+    let eza_cmds = [
+        r#"echo -e '\n\x1b[1;34m CONTENTS\x1b[0m'"#,
+        r#"contents=$(eza --color=always -al --icons {1} 2>/dev/null)"#,
+        r#"if [ -z "$contents" ]; then 
+            echo -e '\x1b[3;90mDirectory is empty\x1b[0m'; 
+        else 
+            echo "$contents"; 
+        fi"#,
+    ];
+
+    let preview_script = [
+        git_cmds.join("\n"), //
+        eza_cmds.join("\n"), //
+    ]
+    .join("\n");
+
+    cmd.arg("--preview").arg(preview_script);
+    cmd.stdin(Stdio::piped()).stdout(Stdio::piped());
 
     cmd
 }
@@ -54,7 +68,7 @@ pub fn send_repos_to_fzf(repos: &[Repo], stdin: &mut std::process::ChildStdin) {
             pretty.white()
         };
 
-        if let Err(e) = writeln!(stdin, "{}\t{}\t{}", r.path, index, colored_path) {
+        if let Err(e) = writeln!(stdin, "{}\t{}  {}", r.path, index, colored_path) {
             eprintln!("Error writing to fzf: {}", e);
             break;
         }
