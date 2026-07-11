@@ -28,7 +28,7 @@ pub fn build_fzf_command() -> Command {
 
     let eza_cmds = [
         r#"echo -e '\n\x1b[1;34m CONTENTS\x1b[0m'"#,
-        r#"contents=$(eza --color=always -al --icons {1} 2>/dev/null)"#,
+        r#"contents=$(eza --color=always -al --icons=always {1} 2>/dev/null)"#,
         r#"if [ -z "$contents" ]; then 
             echo -e '\x1b[3;90mDirectory is empty\x1b[0m'; 
         else 
